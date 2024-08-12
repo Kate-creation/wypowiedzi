@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-size: cover;
+            background-position: center;
+            color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding: 0;
+            margin: 0;
+            position: relative;
+        }
+        #quiz-container {
+            max-height: 100%; 
+            overflow-y: auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.7); /* Transparent background */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            width: 600px;
+        }
+        .question {
+            margin-bottom: 15px;
+        }
+        .answer {
+            margin-bottom: 5px;
+        }
+        .answer label {
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        .answer input:checked + label {
+            background-color: #ddd;
+        }
+        .correct {
+            color: green;
+        }
+        .incorrect {
+            color: red;
+        }
+        .underline {
+            text-decoration: underline;
+        }
+        .sidebar {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 20px;
+            width: 200px;
+        }
+        .quiz-controls {
+            background: rgba(255, 255, 255, 0.7); /* Transparent background */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .quiz-controls button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .quiz-controls button:hover {
+            background-color: #f0f0f0;
+        }
+        #result {
+            background: rgba(255, 255, 255, 0.7); /* Transparent background */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            text-align: center;
+        }
+        #title-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.5); /* Transparent background */
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="title-panel">Quiz Tworzenie wypowiedz Hubcio</div>
+    <div id="quiz-container"></div>
+    <div class="sidebar">
+        <div class="quiz-controls">
+            <button onclick="checkAnswers()">Sprawdź odpowiedzi</button>
+            <button onclick="retryQuiz()">Spróbuj ponownie</button>
+            <button onclick="refreshPage()">Odśwież</button>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const allQuestions = [
+    { question: "Co to jest retoryka?", answers: ["Sztuka perswazji i skutecznego komunikowania się", "Nauka o strukturze języka", "Technika pisania poezji"], correct: 0 },
+    { question: "Wymień trzy środki retoryczne.", answers: ["Metafora, ironia, aliteracja", "Rytm, rym, refren", "Proza, wiersz, dramat"], correct: 0 },
+    { question: "Jakie jest zadanie tezy w rozprawce?", answers: ["Przedstawienie głównego argumentu", "Podsumowanie wszystkich argumentów", "Wprowadzenie do tematu"], correct: 0 },
+    { question: "Czym różni się argument od przykładu?", answers: ["Argument to szczegół, a przykład to ogół", "Argument to ogólna teza, a przykład to jej ilustracja", "Argument to pytanie, a przykład to odpowiedź"], correct: 1 },
+    { question: "Co to jest hipoteza?", answers: ["Przypuszczenie wymagające sprawdzenia", "Definicja naukowa", "Ostateczny wniosek"], correct: 0 },
+    { question: "Jakie są podstawowe zasady spójności językowej?", answers: ["Używanie krótkich zdań", "Logiczne powiązanie myśli i konsekwencja w użyciu terminologii", "Unikanie powtórzeń"], correct: 1 },
+    { question: "Co to jest akapit?", answers: ["Część zdania", "Oddzielna jednostka tekstu skupiająca się na jednym temacie", "Tytuł rozdziału"], correct: 1 },
+    { question: "Jakie funkcje pełni akapit w tekście?", answers: ["Dzieli tekst na równe części", "Zaznacza koniec tekstu", "Organizuje tekst, ułatwia jego czytanie i zrozumienie"], correct: 2 },
+    { question: "Co to jest rytm akapitowy?", answers: ["Regularne powtarzanie się dźwięków w akapicie", "Zmienna długość i struktura akapitów dla uzyskania dynamiki tekstu", "Stała liczba zdań w każdym akapicie"], correct: 1 },
+    { question: "Jakie są zasady tworzenia wypowiedzi argumentacyjnej?", answers: ["Stosowanie wyłącznie faktów", "Logiczne przedstawienie argumentów popartych przykładami", "Pisanie w pierwszej osobie"], correct: 1 },
+    { question: "Co to znaczy polemizować z cudzymi poglądami?", answers: ["Zgodzić się z nimi", "Dyskutować i kwestionować je", "Ignorować je"], correct: 1 },
+    { question: "W jaki sposób można rozpoznać manipulację w reklamie?", answers: ["Analizując emocjonalne odwołania i brak pełnych informacji", "Sprawdzając długość reklamy", "Porównując kolory użyte w reklamie"], correct: 0 },
+    { question: "Jakie są zasady etyki wypowiedzi?", answers: ["Używanie skomplikowanego języka", "Uczciwość, szacunek i odpowiedzialność za słowa", "Unikanie tematów kontrowersyjnych"], correct: 1 },
+    { question: "Co to jest wnioskowanie?", answers: ["Proces kończenia wypowiedzi", "Wyciąganie logicznych wniosków na podstawie przesłanek", "Tworzenie hipotez"], correct: 1 },
+    { question: "Jakie są różnice między perswazją a manipulacją?", answers: ["Perswazja jest uczciwa, manipulacja jest podstępna", "Perswazja jest mniej skuteczna", "Manipulacja jest bardziej bezpośrednia"], correct: 0 },
+    { question: "Co należy do form gatunkowych wypowiedzi?", answers: ["Esej, reportaż, felieton", "Powieść, komiks, dramat", "Wszystkie powyższe"], correct: 2 },
+    { question: "Co powinno zawierać dobre podanie?", answers: ["Tylko dane osobowe", "Dane osobowe, cel podania i uzasadnienie", "Listę osiągnięć"], correct: 1 },
+    { question: "Jakie elementy powinien mieć życiorys?", answers: ["Tylko doświadczenie zawodowe", "Dane osobowe, wykształcenie, doświadczenie zawodowe", "Tylko wykształcenie"], correct: 1 },
+    { question: "Jakie informacje powinny znaleźć się w CV?", answers: ["Tylko imię i nazwisko", "Dane kontaktowe, doświadczenie, umiejętności", "Tylko adres zamieszkania"], correct: 1 },
+    { question: "Jak napisać list motywacyjny?", answers: ["Skupić się na swoich słabościach", "Podkreślić swoje umiejętności i motywację do pracy", "Opisać historię życia"], correct: 1 },
+    { question: "Co to jest recenzja i jakie ma elementy?", answers: ["Opis książki z oceną", "Krótkie streszczenie", "Tylko ocena bez opisu"], correct: 0 },
+    { question: "Jakie są zasady pisania przemówienia?", answers: ["Unikanie kontaktu wzrokowego", "Jasność, zwięzłość, dostosowanie do odbiorców", "Pisanie w formie dialogu"], correct: 1 },
+    { question: "Co to jest wywiad i jakie pytania można zadać w jego trakcie?", answers: ["Rozmowa w celu uzyskania informacji, pytania otwarte i zamknięte", "Monolog prowadzącego", "Tylko pytania zamknięte"], correct: 0 },
+    { question: "Jakie techniki można wykorzystać przy parafrazowaniu tekstu?", answers: ["Zmiana kolejności słów", "Użycie synonimów i zmiana struktury zdań", "Dodanie nowych informacji"], correct: 1 },
+    { question: "Jakie są zasady skracania tekstu?", answers: ["Usuwanie wszystkich przymiotników", "Zostawianie tylko kluczowych informacji", "Zmiana tematu"], correct: 1 },
+    { question: "Jakie pytania można formułować do przeczytanego tekstu?", answers: ["Tylko pytania retoryczne", "Pytania dotyczące treści, intencji autora i kontekstu", "Tylko pytania o styl"], correct: 1 },
+    { question: "Jak interpretować głosowo teksty literackie?", answers: ["Czytać monotonnym głosem", "Uwzględniać emocje i intencje autora", "Skupiać się tylko na artykulacji"], correct: 1 },
+    { question: "Co to jest streszczenie i jak je stworzyć?", answers: ["Długi opis tekstu", "Krótkie przedstawienie najważniejszych informacji z tekstu", "Krytyka tekstu"], correct: 1 },
+    { question: "Jakie są kluczowe elementy spójnej wypowiedzi?", answers: ["Krótkość i zwięzłość", "Logiczna struktura i jasne powiązania między częściami", "Bogaty język"], correct: 1 },
+    { question: "Jakie błędy najczęściej popełniamy w pisaniu?", answers: ["Zbyt długie zdania i brak interpunkcji", "Zbyt krótkie zdania", "Zbyt wiele przymiotników"], correct: 0 },
+    { question: "Podaj przykład tezy do rozprawki.", answers: ["Czy warto czytać książki?", "Czytanie książek rozwija wyobraźnię i poszerza wiedzę.", "Książki są niepotrzebne."], correct: 1 },
+    { question: "Napisz krótki akapit, który zawiera argument i przykład.", answers: ["Czytanie książek jest ważne. Na przykład, dzięki książkom uczymy się nowych słów.", "Książki są nudne.", "Lubię książki."], correct: 0 },
+    { question: "Stwórz plan kompozycyjny dla recenzji książki.", answers: ["Wstęp, streszczenie, ocena, zakończenie", "Opis, analiza, podsumowanie", "Tylko ocena"], correct: 0 },
+    { question: "Zrób streszczenie poniższego tekstu (podaj krótki tekst do streszczenia).", answers: ["Tekst jest o...", "Główne punkty to...", "Nie wiem, o co chodzi."], correct: 1 },
+    { question: "Napisz pytania do wywiadu z ulubionym pisarzem.", answers: ["Dlaczego piszesz?", "Jakie są twoje ulubione książki?", "Oba powyższe"], correct: 2 },
+    { question: "Jakie argumenty można użyć w dyskusji na temat ochrony środowiska?", answers: ["To nie jest ważne.", "Ochrona środowiska jest kluczowa dla przyszłych pokoleń.", "Nie ma sensu."], correct: 1 },
+    { question: "Podaj przykład manipulacji w reklamie.", answers: ["Użycie emocjonalnych odwołań bez pełnych informacji", "Prezentacja faktów", "Neutralne przedstawienie produktu"], correct: 0 },
+    { question: "Jakie środki perswazji są najczęściej stosowane w reklamach?", answers: ["Fakty i liczby", "Emocje i autorytet", "Długie opisy"], correct: 1 },
+    { question: "Napisz krótkie przemówienie na temat znaczenia czytania książek.", answers: ["Czytanie książek jest nudne.", "Czytanie rozwija wyobraźnię i poszerza wiedzę.", "Nie warto czytać."], correct: 1 },
+    { question: "Jakie są różnice między stylem formalnym a nieformalnym w pisaniu?", answers: ["Formalny jest bardziej osobisty", "Formalny jest bardziej strukturalny i używa bardziej profesjonalnego języka", "Nieformalny używa skomplikowanego języka"], correct: 1 },
+    { question: "Przeanalizuj podany tekst pod kątem użytych środków retorycznych (podaj tekst do analizy).", answers: ["Tekst używa metafor i porównań.", "Nie ma żadnych środków retorycznych.", "Tylko fakty."], correct: 0 },
+    { question: "Wskaż, jakie argumenty są użyte w danym tekście (podaj tekst do analizy).", answers: ["Tekst używa argumentów logicznych.", "Brak argumentów.", "Tylko opinie."], correct: 0 },
+    { question: "Jakie są emocje wyrażane w przeczytanym fragmencie?", answers: ["Radość i zaskoczenie.", "Nie ma emocji.", "Tylko smutek."], correct: 0 },
+    { question: "Jakie pytania można zadać, aby lepiej zrozumieć tekst?", answers: ["Co autor miał na myśli?", "Jakie są główne punkty?", "Oba powyższe"], correct: 2 },
+    { question: "Co to znaczy, że tekst jest spójny?", answers: ["Jest krótki", "Ma logiczną strukturę i powiązania między częściami", "Jest napisany jednym stylem"], correct: 1 },
+    { question: "Jakie są zasady tworzenia skutecznej argumentacji?", answers: ["Unikanie przykładów", "Logiczne przedstawienie argumentów i ich poparcie dowodami", "Pisanie w pierwszej osobie"], correct: 1 },
+    { question: "Co to jest kontekst w wypowiedzi?", answers: ["Tło i okoliczności, które wpływają na znaczenie wypowiedzi", "Tylko treść wypowiedzi", "Tylko miejsce wypowiedzi"], correct: 0 },
+    { question: "Jakie są różnice między mówieniem a pisaniem?", answers: ["Mówienie jest bardziej formalne", "Pisanie jest bardziej przemyślane i trwałe", "Mówienie jest zawsze bardziej złożone"], correct: 1 },
+    { question: "Jak przygotować się do wygłoszenia przemówienia?", answers: ["Zapamiętać tekst", "Zrozumieć temat i ćwiczyć wystąpienie", "Unikać kontaktu z publicznością"], correct: 1 },
+    { question: "Jakie techniki można wykorzystać do poprawy płynności mówienia?", answers: ["Ćwiczenie z nagrywaniem siebie", "Mówienie szybciej", "Unikanie trudnych słów"], correct: 0 },
+    { question: "Jakie umiejętności rozwija pisanie rozprawki?", answers: ["Umiejętność szybkiego pisania", "Krytyczne myślenie i umiejętność argumentacji", "Tylko znajomość ortografii"], correct: 1 },
+    { question: "Dlaczego ważne jest gromadzenie materiałów przed pisaniem?", answers: ["Aby mieć więcej do przeczytania", "Aby lepiej zrozumieć temat i przygotować solidne argumenty", "Aby zapełnić czas"], correct: 1 },
+    { question: "Jakie korzyści płyną z umiejętności argumentacji?", answers: ["Lepsze zrozumienie innych", "Umiejętność przekonywania i obrona własnych poglądów", "Tylko wygrywanie debat"], correct: 1 },
+    { question: "Jakie są najważniejsze zasady etyczne w komunikacji?", answers: ["Uczciwość, szacunek i odpowiedzialność", "Unikanie kontrowersyjnych tematów", "Zawsze zgadzać się z rozmówcą"], correct: 0 },
+    { question: "Jakie cechy powinien mieć dobry mówca?", answers: ["Pewność siebie, jasność wypowiedzi, umiejętność angażowania publiczności", "Tylko głośny głos", "Tylko dobra pamięć"], correct: 0 },
+    { question: "Co można zrobić, aby poprawić swoje umiejętności pisarskie?", answers: ["Pisać regularnie i czytać różnorodne teksty", "Unikać pisania", "Pisać tylko dla siebie"], correct: 0 },
+    { question: "Jakie są najczęstsze trudności w tworzeniu wypowiedzi?", answers: ["Brak pomysłów i trudności w organizacji myśli", "Zbyt szybkie pisanie", "Zbyt wiele pomysłów"], correct: 0 },
+    { question: "Jakie techniki pomagają w zapamiętywaniu informacji?", answers: ["Powtarzanie i tworzenie notatek", "Unikanie powtórek", "Słuchanie muzyki podczas nauki"], correct: 0 },
+    { question: "Co to znaczy być krytycznym odbiorcą tekstów?", answers: ["Bezrefleksyjne akceptowanie treści", "Analizowanie treści, kwestionowanie źródeł i poszukiwanie ukrytych znaczeń", "Unikanie czytania trudnych tekstów"], correct: 1 },
+    { question: "Jakie są kluczowe elementy skutecznej rozprawki?", answers: ["Wstęp, rozwinięcie, zakończenie", "Tylko rozwinięcie", "Wstęp i zakończenie bez rozwinięcia"], correct: 0 }
+];
+
+
+   
+       const backgrounds = [
+    "https://mrwallpaper.com/images/high/lost-in-space-character-will-robinson-u25jxee8g9h57ka6.webp",
+    "https://mrwallpaper.com/images/high/the-father-and-son-in-lost-in-space-1ozdty9kpkavgjn3.webp",
+    "https://mrwallpaper.com/images/high/the-bad-robot-in-lost-in-space-1xfaddefpqb1eiyu.webp",
+    "https://mrwallpaper.com/images/high/lost-in-space-netflix-tv-series-sfb48kdco7r1b8l2.webp",
+    "https://mrwallpaper.com/images/high/lost-in-space-and-the-alien-ffwqcj7rpw33d1te.webp",
+    "https://mrwallpaper.com/images/high/an-astronaut-lost-in-space-5h1ykyuwhkuu39c6.webp",
+    "https://mrwallpaper.com/images/high/lost-in-space-in-the-starry-sky-apsk61foj3e3078l.webp",
+    "https://mrwallpaper.com/images/high/lost-in-space-series-characters-zjo53jdsgjdse7qv.webp",
+    "https://mrwallpaper.com/images/high/taylor-russell-mckenzie-in-lost-in-space-acmt6jqn9t2z0lub.webp",
+    "https://mrwallpaper.com/images/high/a-robot-in-lost-in-space-seeie9q82l8tmwn9.webp"
+];
+
+
+
+        let currentQuestions = [];
+
+        function getRandomQuestions() {
+            return allQuestions.sort(() => 0.5 - Math.random()).slice(0, 10);
+        }
+
+        function setTextColorBasedOnBackground(imageUrl) {
+            const img = new Image();
+            img.crossOrigin = 'Anonymous';
+            img.src = imageUrl;
+
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0, img.width, img.height);
+
+                const imageData = ctx.getImageData(0, 0, img.width, img.height);
+                let r = 0, g = 0, b = 0;
+
+                for (let i = 0; i < imageData.data.length; i += 4) {
+                    r += imageData.data[i];
+                    g += imageData.data[i + 1];
+                    b += imageData.data[i + 2];
+                }
+
+                const pixelCount = img.width * img.height;
+                r = r / pixelCount;
+                g = g / pixelCount;
+                b = b / pixelCount;
+
+                const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+
+                document.body.style.color = brightness > 128 ? '#000' : '#fff';
+            };
+        }
+
+        function refreshBackground() {
+            const randomIndex = Math.floor(Math.random() * backgrounds.length);
+            const selectedBackground = backgrounds[randomIndex];
+            document.body.style.backgroundImage = `url(${selectedBackground})`;
+            setTextColorBasedOnBackground(selectedBackground);
+        }
+
+        function loadQuestions() {
+            const quizContainer = document.getElementById('quiz-container');
+            quizContainer.innerHTML = currentQuestions.map((q, index) => `
+                <div class="question">
+                    <p>${index + 1}. ${q.question}</p>
+                    ${q.answers.map((answer, i) => `
+                        <div class="answer">
+                            <input type="radio" name="question${index}" id="question${index}answer${i}" value="${i}">
+                            <label for="question${index}answer${i}">${answer}</label>
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('');
+        }
+
+        function checkAnswers() {
+            const resultContainer = document.getElementById('result');
+            let score = 0;
+
+            currentQuestions.forEach((question, qIndex) => {
+                const selectedAnswer = document.querySelector(`input[name="question${qIndex}"]:checked`);
+                if (selectedAnswer) {
+                    const selectedValue = parseInt(selectedAnswer.value);
+                    const correctAnswer = question.correct;
+
+                    const answerLabels = document.querySelectorAll(`input[name="question${qIndex}"] + label`);
+                    answerLabels.forEach((label, aIndex) => {
+                        if (aIndex === correctAnswer) {
+                            label.classList.add('correct');
+                            label.classList.add('underline');
+                        } else if (aIndex === selectedValue) {
+                            label.classList.add('incorrect');
+                        }
+                    });
+
+                    if (selectedValue === correctAnswer) {
+                        score++;
+                    }
+                }
+            });
+
+            const motivationalMessage = getMotivationalMessage(score);
+            resultContainer.innerHTML = `Wynik: ${score}/10<br>${motivationalMessage}`;
+        }
+
+        function getMotivationalMessage(score) {
+            if (score === 10) {
+                return "Robot mówi: Analizuję twoje osiągnięcia... i stwierdzam, że są imponujące!";
+            } else if (score >= 7) {
+                return "Will mówi: Brawo! Razem możemy osiągnąć wszystko!";
+            } else if (score >= 5) {
+                return "Robot mówi: Analizuję dane... i dochodzę do wniosku, że determinacja to klucz do sukcesu!";
+            } else {
+                return "Will mówi: „Nie poddawaj się! Każda trudność jest krokiem do przodu!";
+            }
+        }
+
+        function retryQuiz() {
+            document.querySelectorAll('.answer label').forEach(label => {
+                label.classList.remove('correct', 'incorrect', 'underline');
+            });
+            document.querySelectorAll('input[type="radio"]').forEach(input => {
+                input.checked = false;
+            });
+            document.getElementById('result').innerHTML = ""; // Zresetuj wynik
+        }
+
+        function refreshPage() {
+            refreshBackground();
+            currentQuestions = getRandomQuestions();
+            loadQuestions();
+        }
+
+        // Load initial questions and background
+        refreshBackground();
+        currentQuestions = getRandomQuestions();
+        loadQuestions();
+    </script>
+</body>
+</html>
